@@ -1,0 +1,83 @@
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlin.random.Random
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            JokenpoGame()
+        }
+    }
+}
+
+@Composable
+fun JokenpoGame() {
+    // State hoisting
+    var userChoice by remember { mutableStateOf("") }
+    var cpuChoice by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf("") }
+
+    val options = listOf("Pedra", "Papel", "Tesoura")
+
+    fun play(choice: String) {
+        userChoice = choice
+        cpuChoice = options.random()
+
+        result = when {
+            userChoice == cpuChoice -> "Empate!"
+            userChoice == "Pedra" && cpuChoice == "Tesoura" -> "Você venceu!"
+            userChoice == "Papel" && cpuChoice == "Pedra" -> "Você venceu!"
+            userChoice == "Tesoura" && cpuChoice == "Papel" -> "Você venceu!"
+            else -> "Você perdeu!"
+        }
+    }
+
+    // Interface
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Text(text = "Jokenpô", fontSize = 32.sp)
+
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(onClick = { play("Pedra") }) {
+                Text("🪨 Pedra")
+            }
+            Button(onClick = { play("Papel") }) {
+                Text("📄 Papel")
+            }
+            Button(onClick = { play("Tesoura") }) {
+                Text("✂️ Tesoura")
+            }
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Sua escolha: $userChoice", fontSize = 18.sp)
+            Text("Escolha do app: $cpuChoice", fontSize = 18.sp)
+            Text("Resultado: $result", fontSize = 20.sp)
+        }
+
+        Button(onClick = {
+            userChoice = ""
+            cpuChoice = ""
+            result = ""
+        }) {
+            Text("Jogar Novamente")
+        }
+    }
+}
