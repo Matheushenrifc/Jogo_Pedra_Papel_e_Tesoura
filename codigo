@@ -1,83 +1,169 @@
+package com.example.pedrapapeltesoura
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            JokenpoGame()
+            val customColors = lightColorScheme(
+                primary = Color(0xFF6200EE),
+                secondary = Color(0xFF03DAC5),
+                background = Color(0xFFEDE7F6),
+                onPrimary = Color.White,
+                onBackground = Color.Black
+            )
+
+            MaterialTheme(
+                colorScheme = customColors
+            ) {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    JogoTela()
+                }
+            }
         }
     }
 }
 
 @Composable
-fun JokenpoGame() {
-    // State hoisting
-    var userChoice by remember { mutableStateOf("") }
-    var cpuChoice by remember { mutableStateOf("") }
-    var result by remember { mutableStateOf("") }
+fun JogoTela() {
+    var jogadorEscolha by remember { mutableStateOf("") }
+    var computadorEscolha by remember { mutableStateOf("") }
+    var resultado by remember { mutableStateOf("") }
 
-    val options = listOf("Pedra", "Papel", "Tesoura")
+    // Função para jogar
+    fun jogar(jogada: String) {
+        jogadorEscolha = jogada
+        val opcoes = listOf("👊", "✋", "✌️")
+        computadorEscolha = opcoes.random()
 
-    fun play(choice: String) {
-        userChoice = choice
-        cpuChoice = options.random()
-
-        result = when {
-            userChoice == cpuChoice -> "Empate!"
-            userChoice == "Pedra" && cpuChoice == "Tesoura" -> "Você venceu!"
-            userChoice == "Papel" && cpuChoice == "Pedra" -> "Você venceu!"
-            userChoice == "Tesoura" && cpuChoice == "Papel" -> "Você venceu!"
-            else -> "Você perdeu!"
+        resultado = when {
+            jogadorEscolha == computadorEscolha -> "Empate! ⚖️"
+            jogadorEscolha == "👊" && computadorEscolha == "✌️" -> "Você venceu! 🏆"
+            jogadorEscolha == "✋" && computadorEscolha == "👊" -> "Você venceu! 🏆"
+            jogadorEscolha == "✌️" && computadorEscolha == "✋" -> "Você venceu! 🏆"
+            else -> "Computador venceu! 💔"
         }
     }
 
-    // Interface
+    // Função para reiniciar o jogo
+    fun reiniciar() {
+        jogadorEscolha = ""
+        computadorEscolha = ""
+        resultado = ""
+    }
+
+    val resultColor by animateColorAsState(
+        targetValue = when {
+            resultado.contains("venceu") && resultado.contains("Você") -> Color(0xFF4CAF50)
+            resultado.contains("Computador") -> Color(0xFFF44336)
+            resultado.contains("Empate") -> Color(0xFF2196F3)
+            else -> Color.Gray
+        },
+        label = "ResultadoColor"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceEvenly
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFFEDE7F6),
+                        Color(0xFFD1C4E9)
+                    )
+                )
+            )
+            .padding(20.dp),
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Jokenpô", fontSize = 32.sp)
 
+        // Título do jogo
+        Text(
+            "Jokenpô",
+            fontSize = 55.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        // Resultado
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Você: $jogadorEscolha", fontSize = 20.sp)
+                Text("Computador: $computadorEscolha", fontSize = 20.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    resultado,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = resultColor
+                )
+            }
+        }
+
+        // Botões de jogada
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Button(onClick = { play("Pedra") }) {
-                Text("🪨 Pedra")
-            }
-            Button(onClick = { play("Papel") }) {
-                Text("📄 Papel")
-            }
-            Button(onClick = { play("Tesoura") }) {
-                Text("✂️ Tesoura")
+            listOf("👊", "✋", "✌️").forEach { opcao ->
+                Button(
+                    onClick = { jogar(opcao) },
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(opcao, fontSize = 30.sp)
+                }
             }
         }
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Sua escolha: $userChoice", fontSize = 18.sp)
-            Text("Escolha do app: $cpuChoice", fontSize = 18.sp)
-            Text("Resultado: $result", fontSize = 20.sp)
-        }
+        Spacer(modifier = Modifier.height(10.dp))
 
-        Button(onClick = {
-            userChoice = ""
-            cpuChoice = ""
-            result = ""
-        }) {
-            Text("Jogar Novamente")
+        // Botão de reiniciar
+        Button(
+            onClick = { reiniciar() },
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .height(50.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFB39DDB),
+                contentColor = Color.White
+            )
+        ) {
+            Text("🔄 Reiniciar", fontSize = 18.sp)
         }
     }
 }
